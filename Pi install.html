@@ -1,0 +1,1646 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PI Server Full Installation Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow:wght@300;400;600;700;900&family=Barlow+Condensed:wght@700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080c14;
+    --bg2: #0d1421;
+    --bg3: #111d2e;
+    --grid: rgba(0,180,255,0.04);
+    --accent: #00b4ff;
+    --accent2: #00ffaa;
+    --accent3: #ff6b35;
+    --accent4: #ffcc00;
+    --warn: #ff4444;
+    --text: #c8dff0;
+    --text-dim: #4a6a85;
+    --border: rgba(0,180,255,0.15);
+    --border-bright: rgba(0,180,255,0.4);
+    --glow: 0 0 20px rgba(0,180,255,0.3);
+    --glow2: 0 0 20px rgba(0,255,170,0.3);
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Barlow', sans-serif;
+    font-weight: 300;
+    overflow-x: hidden;
+    min-height: 100vh;
+  }
+
+  /* GRID BACKGROUND */
+  body::before {
+    content:'';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* SCAN LINE */
+  body::after {
+    content:'';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.03) 2px,
+      rgba(0,0,0,0.03) 4px
+    );
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrapper { position: relative; z-index: 1; max-width: 1200px; margin: 0 auto; padding: 40px 24px 80px; }
+
+  /* ── HEADER ── */
+  .header {
+    text-align: center;
+    padding: 60px 0 50px;
+    position: relative;
+  }
+  .header-badge {
+    display: inline-block;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 4px;
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    padding: 4px 16px;
+    margin-bottom: 20px;
+    animation: pulse-border 3s infinite;
+  }
+  @keyframes pulse-border {
+    0%,100%{ box-shadow: 0 0 6px rgba(0,180,255,0.3); }
+    50%{ box-shadow: 0 0 18px rgba(0,180,255,0.7); }
+  }
+  .header h1 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: clamp(36px,6vw,72px);
+    font-weight: 900;
+    letter-spacing: -1px;
+    line-height: 1;
+    color: #fff;
+    text-shadow: 0 0 40px rgba(0,180,255,0.5);
+  }
+  .header h1 span { color: var(--accent); }
+  .header-sub {
+    margin-top: 14px;
+    font-size: 15px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+  }
+  .header-meta {
+    display: flex;
+    justify-content: center;
+    gap: 32px;
+    margin-top: 28px;
+    flex-wrap: wrap;
+  }
+  .meta-chip {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: var(--accent2);
+    border: 1px solid rgba(0,255,170,0.25);
+    padding: 5px 14px;
+    border-radius: 2px;
+    background: rgba(0,255,170,0.05);
+  }
+
+  /* ── ARCHITECTURE ── */
+  .section-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 5px;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .section-title::after {
+    content:'';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, var(--border-bright), transparent);
+  }
+
+  .arch-box {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 32px;
+    margin-bottom: 48px;
+    position: relative;
+    overflow: hidden;
+  }
+  .arch-box::before {
+    content:'';
+    position: absolute;
+    top:0; left:0; right:0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  }
+
+  .arch-flow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0;
+  }
+  .arch-node {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 18px 20px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    min-width: 130px;
+    position: relative;
+    transition: all 0.3s;
+    cursor: pointer;
+  }
+  .arch-node:hover {
+    border-color: var(--accent);
+    box-shadow: var(--glow);
+    transform: translateY(-3px);
+  }
+  .arch-node .ico { font-size: 28px; margin-bottom: 8px; }
+  .arch-node .lbl {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    color: var(--accent);
+    letter-spacing: 1px;
+  }
+  .arch-node .desc { font-size: 11px; color: var(--text-dim); margin-top: 4px; }
+
+  .arch-arrow {
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+    color: var(--accent);
+    font-size: 20px;
+    opacity: 0.6;
+  }
+
+  /* ── PHASES ── */
+  .phases-grid {
+    display: grid;
+    gap: 24px;
+  }
+
+  .phase-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    transition: border-color 0.3s;
+  }
+  .phase-card:hover { border-color: var(--border-bright); }
+
+  .phase-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 20px 28px;
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+  }
+  .phase-num {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 42px;
+    font-weight: 900;
+    line-height: 1;
+    color: var(--border-bright);
+    min-width: 52px;
+  }
+  .phase-info { flex:1; }
+  .phase-info h3 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: #fff;
+  }
+  .phase-info p { font-size: 12px; color: var(--text-dim); margin-top: 3px; }
+  .phase-badge {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    padding: 3px 10px;
+    border-radius: 2px;
+    letter-spacing: 1px;
+  }
+  .badge-pre { background: rgba(255,204,0,0.1); color: var(--accent4); border: 1px solid rgba(255,204,0,0.25); }
+  .badge-install { background: rgba(0,180,255,0.1); color: var(--accent); border: 1px solid var(--border); }
+  .badge-config { background: rgba(0,255,170,0.1); color: var(--accent2); border: 1px solid rgba(0,255,170,0.25); }
+  .badge-critical { background: rgba(255,68,68,0.1); color: var(--warn); border: 1px solid rgba(255,68,68,0.25); }
+  .badge-verify { background: rgba(255,107,53,0.1); color: var(--accent3); border: 1px solid rgba(255,107,53,0.25); }
+
+  .phase-toggle {
+    font-size: 18px;
+    color: var(--text-dim);
+    transition: transform 0.3s;
+  }
+  .phase-card.open .phase-toggle { transform: rotate(180deg); color: var(--accent); }
+
+  .phase-accent-bar {
+    height: 3px;
+    background: var(--border);
+  }
+  .phase-accent-bar.c0 { background: linear-gradient(90deg, var(--accent4), transparent); }
+  .phase-accent-bar.c1 { background: linear-gradient(90deg, var(--accent), transparent); }
+  .phase-accent-bar.c2 { background: linear-gradient(90deg, var(--accent2), transparent); }
+  .phase-accent-bar.c3 { background: linear-gradient(90deg, var(--warn), transparent); }
+  .phase-accent-bar.c4 { background: linear-gradient(90deg, var(--accent), transparent); }
+  .phase-accent-bar.c5 { background: linear-gradient(90deg, var(--accent2), transparent); }
+  .phase-accent-bar.c6 { background: linear-gradient(90deg, var(--accent3), transparent); }
+  .phase-accent-bar.c7 { background: linear-gradient(90deg, var(--accent4), transparent); }
+
+  .phase-body {
+    display: none;
+    padding: 0 28px 28px;
+    border-top: 1px solid var(--border);
+  }
+  .phase-card.open .phase-body { display: block; }
+
+  /* STEPS */
+  .steps { margin-top: 20px; display: flex; flex-direction: column; gap: 14px; }
+
+  .step {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    padding: 16px 18px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    transition: border-color 0.2s;
+  }
+  .step:hover { border-color: rgba(0,180,255,0.3); }
+
+  .step-num {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    background: rgba(0,180,255,0.1);
+    border: 1px solid var(--border);
+    width: 28px; height: 28px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 2px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .step-content { flex:1; }
+  .step-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #e0f0ff;
+    margin-bottom: 6px;
+  }
+  .step-desc { font-size: 12px; color: var(--text-dim); line-height: 1.7; }
+
+  .code-block {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    background: rgba(0,0,0,0.5);
+    border: 1px solid rgba(0,180,255,0.1);
+    border-left: 3px solid var(--accent);
+    padding: 12px 14px;
+    margin-top: 10px;
+    border-radius: 2px;
+    line-height: 1.8;
+    color: #a0d8ff;
+    white-space: pre-wrap;
+    word-break: break-all;
+    position: relative;
+  }
+  .code-block .cmd { color: var(--accent2); }
+  .code-block .comment { color: var(--text-dim); }
+  .code-block .value { color: var(--accent4); }
+  .code-block .warn { color: var(--warn); }
+
+  .copy-btn {
+    position: absolute;
+    top: 8px; right: 8px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 1px;
+    color: var(--text-dim);
+    background: transparent;
+    border: 1px solid var(--border);
+    padding: 3px 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .copy-btn:hover { color: var(--accent); border-color: var(--accent); }
+
+  .warn-box {
+    background: rgba(255,68,68,0.07);
+    border: 1px solid rgba(255,68,68,0.25);
+    border-left: 3px solid var(--warn);
+    padding: 12px 16px;
+    margin-top: 10px;
+    border-radius: 2px;
+    font-size: 12px;
+    color: #ff9999;
+    line-height: 1.6;
+  }
+  .warn-box .w-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    color: var(--warn);
+    letter-spacing: 2px;
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  .info-box {
+    background: rgba(0,180,255,0.05);
+    border: 1px solid rgba(0,180,255,0.15);
+    border-left: 3px solid var(--accent);
+    padding: 12px 16px;
+    margin-top: 10px;
+    border-radius: 2px;
+    font-size: 12px;
+    color: #99ccff;
+    line-height: 1.6;
+  }
+  .info-box .i-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    color: var(--accent);
+    letter-spacing: 2px;
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  .ok-box {
+    background: rgba(0,255,170,0.05);
+    border: 1px solid rgba(0,255,170,0.2);
+    border-left: 3px solid var(--accent2);
+    padding: 12px 16px;
+    margin-top: 10px;
+    border-radius: 2px;
+    font-size: 12px;
+    color: #99ffdd;
+    line-height: 1.6;
+  }
+
+  /* TABLE */
+  .req-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 14px;
+    font-size: 12px;
+  }
+  .req-table th {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--accent);
+    text-align: left;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border-bright);
+    background: rgba(0,180,255,0.05);
+  }
+  .req-table td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-dim);
+    vertical-align: top;
+  }
+  .req-table td:first-child { color: #c8dff0; font-weight: 400; }
+  .req-table tr:hover td { background: rgba(0,180,255,0.03); }
+  .val-ok { color: var(--accent2) !important; }
+  .val-warn { color: var(--accent4) !important; }
+
+  /* ── README ── */
+  .readme-box {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    margin-top: 48px;
+    overflow: hidden;
+    position: relative;
+  }
+  .readme-box::before {
+    content:'';
+    position: absolute;
+    top:0; left:0; right:0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent2), var(--accent), transparent);
+  }
+  .readme-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 20px 28px;
+    border-bottom: 1px solid var(--border);
+  }
+  .readme-header .rh-icon { font-size: 24px; }
+  .readme-header h2 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: #fff;
+  }
+  .readme-header p { font-size: 12px; color: var(--text-dim); }
+  .readme-content {
+    padding: 28px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    line-height: 2;
+    color: #88aacc;
+    white-space: pre-wrap;
+    position: relative;
+  }
+  .readme-content .md-h1 { color: var(--accent); font-size: 15px; }
+  .readme-content .md-h2 { color: var(--accent2); font-size: 13px; }
+  .readme-content .md-h3 { color: var(--accent4); font-size: 12px; }
+  .readme-content .md-bold { color: #ddeeff; }
+  .readme-content .md-code { color: var(--accent); background: rgba(0,180,255,0.08); padding: 1px 5px; border-radius: 2px; }
+  .readme-content .md-warn { color: var(--warn); }
+  .readme-content .md-ok { color: var(--accent2); }
+  .readme-content .md-dim { color: var(--text-dim); }
+
+  .readme-download {
+    display: flex;
+    justify-content: flex-end;
+    padding: 16px 28px;
+    border-top: 1px solid var(--border);
+    gap: 12px;
+  }
+  .dl-btn {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    padding: 10px 24px;
+    border: 1px solid;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all 0.25s;
+    text-decoration: none;
+  }
+  .dl-btn.primary {
+    background: rgba(0,180,255,0.1);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .dl-btn.primary:hover {
+    background: var(--accent);
+    color: var(--bg);
+    box-shadow: var(--glow);
+  }
+  .dl-btn.secondary {
+    background: transparent;
+    border-color: var(--border);
+    color: var(--text-dim);
+  }
+  .dl-btn.secondary:hover { border-color: var(--text-dim); color: #fff; }
+
+  /* CHECKLIST FINAL */
+  .checklist {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 14px;
+  }
+  @media(max-width:600px){ .checklist { grid-template-columns: 1fr; } }
+  .check-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    font-size: 12px;
+    color: var(--text-dim);
+    transition: all 0.2s;
+    cursor: pointer;
+  }
+  .check-item:hover { border-color: var(--accent2); color: var(--text); }
+  .check-item.done { border-color: rgba(0,255,170,0.3); color: var(--accent2); }
+  .check-item.done .chk { color: var(--accent2); }
+  .chk { font-size: 14px; color: var(--border-bright); flex-shrink: 0; }
+
+  /* FOOTER */
+  .footer {
+    text-align: center;
+    padding: 40px 0 20px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+  }
+  .footer span { color: var(--accent); }
+
+  /* ANIMATIONS */
+  @keyframes fadeInUp {
+    from { opacity:0; transform: translateY(20px); }
+    to { opacity:1; transform: translateY(0); }
+  }
+  .phase-card { animation: fadeInUp 0.5s ease both; }
+  .phase-card:nth-child(1) { animation-delay: 0.05s; }
+  .phase-card:nth-child(2) { animation-delay: 0.10s; }
+  .phase-card:nth-child(3) { animation-delay: 0.15s; }
+  .phase-card:nth-child(4) { animation-delay: 0.20s; }
+  .phase-card:nth-child(5) { animation-delay: 0.25s; }
+  .phase-card:nth-child(6) { animation-delay: 0.30s; }
+  .phase-card:nth-child(7) { animation-delay: 0.35s; }
+  .phase-card:nth-child(8) { animation-delay: 0.40s; }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 3px; }
+
+  @media(max-width:768px){
+    .arch-flow { flex-direction: column; }
+    .arch-arrow { transform: rotate(90deg); }
+    .phase-header { flex-wrap: wrap; }
+    .phase-num { font-size: 32px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-badge">// AVEVA OSISOFT SYSTEM</div>
+    <h1>PI <span>SERVER</span><br>INSTALLATION GUIDE</h1>
+    <p class="header-sub">Full Stack: PI Data Archive → PI AF → PI Vision · End-to-End</p>
+    <div class="header-meta">
+      <div class="meta-chip">PI Server 2018 SP3+</div>
+      <div class="meta-chip">PI Vision 2022</div>
+      <div class="meta-chip">Windows Server 2022</div>
+      <div class="meta-chip">8 Phases · Complete</div>
+    </div>
+  </div>
+
+  <!-- ARCHITECTURE -->
+  <div class="section-title">Arsitektur Sistem</div>
+  <div class="arch-box">
+    <div class="arch-flow">
+      <div class="arch-node" title="Data Source: OPC, Modbus, Field Instrument">
+        <div class="ico">🏭</div>
+        <div class="lbl">DATA SOURCE</div>
+        <div class="desc">OPC DA/UA<br>Modbus TCP<br>Field Sensors</div>
+      </div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-node" title="PI Interface Node">
+        <div class="ico">⚡</div>
+        <div class="lbl">PI INTERFACE</div>
+        <div class="desc">OPC Interface<br>Modbus Interface<br>PI ICU Config</div>
+      </div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-node" title="PI Data Archive — Core Time Series Storage">
+        <div class="ico">🗄️</div>
+        <div class="lbl">PI DATA ARCHIVE</div>
+        <div class="desc">Port 5450<br>PI Points/Tags<br>Time-Series DB</div>
+      </div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-node" title="PI Asset Framework — Asset Hierarchy Modeling">
+        <div class="ico">🌳</div>
+        <div class="lbl">PI AF SERVER</div>
+        <div class="desc">Asset Hierarchy<br>AF Database<br>Templates</div>
+      </div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-node" title="PI Vision — Web Visualization">
+        <div class="ico">📊</div>
+        <div class="lbl">PI VISION</div>
+        <div class="desc">IIS Web App<br>Displays<br>Port 443/80</div>
+      </div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-node" title="End User Browser">
+        <div class="ico">🌐</div>
+        <div class="lbl">BROWSER</div>
+        <div class="desc">Chrome / Edge<br>Dashboard View<br>Real-time</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASES -->
+  <div class="section-title">Fase Instalasi</div>
+  <div class="phases-grid" id="phases">
+
+    <!-- FASE 0: LISENSI -->
+    <div class="phase-card" id="p0">
+      <div class="phase-accent-bar c3"></div>
+      <div class="phase-header" onclick="toggle('p0')">
+        <div class="phase-num">00</div>
+        <div class="phase-info">
+          <h3>LISENSI & PROCUREMENT</h3>
+          <p>Wajib dilakukan SEBELUM download atau install apapun</p>
+        </div>
+        <span class="phase-badge badge-critical">⚠ CRITICAL</span>
+        <span class="phase-toggle">▼</span>
+      </div>
+      <div class="phase-body">
+        <div class="warn-box">
+          <span class="w-label">!! PENTING SEBELUM MULAI !!</span>
+          PI System adalah <strong>enterprise licensed software</strong> dari AVEVA (dulu OSIsoft). Kamu TIDAK bisa install tanpa file lisensi resmi. Menggunakan software tanpa lisensi melanggar EULA dan hukum.
+        </div>
+        <div class="steps">
+          <div class="step">
+            <div class="step-num">01</div>
+            <div class="step-content">
+              <div class="step-title">Hubungi AVEVA / Authorized Partner</div>
+              <div class="step-desc">Beli lisensi melalui AVEVA langsung atau System Integrator resmi. Kunjungi: <strong>aveva.com/contact</strong> atau minta referensi SI partner di region lo.</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">02</div>
+            <div class="step-content">
+              <div class="step-title">Dapatkan File yang Dibutuhkan</div>
+              <div class="step-desc">Setelah purchase:</div>
+              <div class="code-block"><span class="comment"># File yang lo butuhkan dari AVEVA:</span>
+<span class="value">PI-Server_2018-SP3-Patch-X_.exe</span>   <span class="comment">← installer kit</span>
+<span class="value">piserver.lic</span>                        <span class="comment">← license file (tied ke hostname)</span>
+<span class="value">PI-Vision_2022_.exe</span>                 <span class="comment">← PI Vision installer</span>
+<span class="comment">
+# Download dari AVEVA Customer Portal:
+# https://customers.osisoft.com</span></div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">03</div>
+            <div class="step-content">
+              <div class="step-title">Catat Hostname — License TERIKAT ke Hostname!</div>
+              <div class="step-desc">License file PI Server <strong>TERIKAT ke hostname server</strong>. Wajib tentukan hostname FINAL sebelum minta license, karena tidak bisa ganti setelah issue.</div>
+              <div class="code-block"><span class="cmd">hostname</span>   <span class="comment">← catat output ini, kasih ke AVEVA saat request license</span>
+<span class="comment"># Contoh: PISERVER01</span></div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">04</div>
+            <div class="step-content">
+              <div class="step-title">Opsi Alternatif: Academic / Developer License</div>
+              <div class="step-desc">AVEVA punya program untuk pelajar dan developer. Cek: <strong>AVEVA Learning</strong> atau <strong>AVEVA Developer Program</strong> untuk akses trial/academic terbatas.</div>
+              <div class="ok-box">✅ Jika lo di perusahaan/project yang sudah punya lisensi, minta ke tim IT Automation untuk akses installer + license file dari AVEVA Customer Portal internal.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FASE 1: PRE-INSTALL -->
+    <div class="phase-card" id="p1">
+      <div class="phase-accent-bar c0"></div>
+      <div class="phase-header" onclick="toggle('p1')">
+        <div class="phase-num">01</div>
+        <div class="phase-info">
+          <h3>PRE-INSTALL PREPARATION</h3>
+          <p>Setup Windows Server sebelum install komponen apapun</p>
+        </div>
+        <span class="phase-badge badge-pre">PRE-REQ</span>
+        <span class="phase-toggle">▼</span>
+      </div>
+      <div class="phase-body">
+        <table class="req-table">
+          <tr><th>Komponen</th><th>Minimum</th><th>Recommended</th></tr>
+          <tr><td>RAM</td><td>8 GB</td><td class="val-ok">16 GB</td></tr>
+          <tr><td>CPU</td><td>2 Core</td><td class="val-ok">4 Core</td></tr>
+          <tr><td>Disk C: (OS)</td><td>40 GB</td><td class="val-ok">80 GB</td></tr>
+          <tr><td>Disk D: (PI Data)</td><td class="val-warn">20 GB</td><td class="val-ok">50 GB+</td></tr>
+          <tr><td>OS</td><td>WS 2016</td><td class="val-ok">WS 2022</td></tr>
+          <tr><td>.NET Framework</td><td>4.8</td><td class="val-ok">4.8</td></tr>
+          <tr><td>Network</td><td>Static IP</td><td class="val-ok">Static IP + DNS</td></tr>
+        </table>
+        <div class="steps">
+          <div class="step">
+            <div class="step-num">01</div>
+            <div class="step-content">
+              <div class="step-title">Set Hostname Final (SEBELUM minta license!)</div>
+              <div class="code-block"><span class="comment"># PowerShell (Run as Administrator)</span>
+<span class="cmd">Rename-Computer</span> <span class="value">-NewName "PISERVER01" -Restart</span></div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">02</div>
+            <div class="step-content">
+              <div class="step-title">Set Static IP Address</div>
+              <div class="code-block"><span class="cmd">New-NetIPAddress</span> <span class="value">-InterfaceAlias "Ethernet" \
+  -IPAddress 192.168.1.100 \
+  -PrefixLength 24 \
+  -DefaultGateway 192.168.1.1</span>
+
+<span class="cmd">Set-DnsClientServerAddress</span> <span class="value">-InterfaceAlias "Ethernet" \
+  -ServerAddresses 127.0.0.1</span></div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">03</div>
+            <div class="step-content">
+              <div class="step-title">Install IIS + Fitur Windows yang Dibutuhkan</div>
+              <div class="code-block"><span class="cmd">Install-WindowsFeature</span> <span class="value">-Name \
+  Web-Server, Web-Asp-Net45, Web-Windows-Auth, \
+  Web-Net-Ext45, Web-ISAPI-Ext, Web-ISAPI-Filter, \
+  Web-Static-Content, Web-Default-Doc, \
+  Web-Http-Errors, Web-Http-Logging, \
+  Web-Request-Monitor, Web-Filtering, \
+  Web-Mgmt-Console \
+  -IncludeManagementTools</span>
+
+<span class="comment"># .NET Framework 3.5 (dibutuhkan PI AF)</span>
+<span class="cmd">Install-WindowsFeature</span> <span class="value">Net-Framework-Core</span></div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">04</div>
+            <div class="step-content">
+              <div class="step-title">Disable IE Enhanced Security & Setup Firewall</div>
+              <div class="code-block"><span class="comment"># Buka port PI Server (TCP 5450)</span>
+<span class="cmd">New-NetFirewallRule</span> <span class="value">-DisplayName "PI Server" \
+  -Direction Inbound -Protocol TCP \
+  -LocalPort 5450 -Action Allow</span>
+
+<span class="comment"># Buka port HTTP/HTTPS untuk PI Vision</span>
+<span class="cmd">New-NetFirewallRule</span> <span class="value">-DisplayName "PI Vision HTTP" \
+  -Direction Inbound -Protocol TCP \
+  -LocalPort 80,443 -Action Allow</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FASE 2: INSTALL PI SERVER -->
+    <div class="phase-card" id="p2">
+      <div class="phase-accent-bar c1"></div>
+      <div class="phase-header" onclick="toggle('p2')">
+        <div class="phase-num">02</div>
+        <div class="phase-info">
+          <h3>INSTALL PI DATA ARCHIVE</h3>
+          <p>Install core PI Server — time-series database engine</p>
+        </div>
+        <span class="phase-badge badge-install">INSTALL</span>
+        <span class="phase-toggle">▼</span>
+      </div>
+      <div class="phase-body">
+        <div class="steps">
+          <div class="step">
+            <div class="step-num">01</div>
+            <div class="step-content">
+              <div class="step-title">Ekstrak Installer Kit</div>
+              <div class="code-block"><span class="comment"># Ekstrak installer ke folder terpisah</span>
+<span class="value">PI-Server_2018-SP3-Patch-3_.exe</span>
+<span class="comment">→ Extract ke: C:\PI_Install\PIServer\</span>
+<span class="comment">→ Jalankan: setup.exe (Run as Administrator)</span></div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">02</div>
+            <div class="step-content">
+              <div class="step-title">Pilih Komponen di Wizard Installer</div>
+              <div class="code-block"><span class="comment">✅ Centang komponen berikut:</span>
+<span class="value">[✓] PI Data Archive</span>       <span class="comment">← WAJIB (core)</span>
+<span class="value">[✓] PI AF Server</span>           <span class="comment">← install bareng (asset framework)</span>
+<span class="value">[✓] PI System Management Tools</span> <span class="comment">← GUI management</span>
+<span class="value">[✓] PI Network Manager</span>
+<span class="value">[ ] PI Notifications</span>       <span class="comment">← optional, bisa skip</span></div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">03</div>
+            <div class="step-content">
+              <div class="step-title">Konfigurasi PI Data Archive di Wizard</div>
+              <div class="code-block"><span class="comment">--- PI Data Archive Configuration ---</span>
+<span class="value">PI Data Archive Name:</span> PISERVER01     <span class="comment">← HARUS sama dengan hostname!</span>
+<span class="value">Data Store Location:</span>  D:\PIData\
+<span class="value">Archive Path:</span>         D:\PIData\arc\
+<span class="value">Backup Path:</span>          D:\PIData\backup\
+<span class="value">PI Port:</span>              5450 (default, jangan diganti)
+
+<span class="comment">--- Authentication ---</span>
+<span class="value">PI Admin Account:</span>     piadmin
+<span class="value">Auth Mode:</span>            Windows Authentication ✅</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">04</div>
+            <div class="step-content">
+              <div class="step-title">Load License File</div>
+              <div class="code-block"><span class="comment"># Saat diminta license, browse ke:</span>
+<span class="value">C:\PI_Install\piserver.lic</span>
+<span class="comment"># Klik Verify → harus tampil: License Valid ✅</span>
+<span class="comment"># Jika error: cek hostname match dengan license</span></div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">05</div>
+            <div class="step-content">
+              <div class="step-title">Verifikasi Setelah Install (~15 menit)</div>
+              <div class="code-block"><span class="comment"># Cek semua PI services berjalan</span>
+<span class="cmd">Get-Service</span> <span class="value">-Name "piarchss","pibasess","pimsgss","pisqlss","piaflink"</span>
+<span class="comment"># Semua harus Status = Running</span>
+
+<span class="comment"># Buka PI SMT untuk verifikasi koneksi</span>
+<span class="comment"># Start Menu → PI System Management Tools</span>
+<span class="comment"># Connect to: \\PISERVER01 → Login OK ✅</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FASE 3: KONFIGURASI PI DA -->
+    <div class="phase-card" id="p3">
+      <div class="phase-accent-bar c2"></div>
+      <div class="phase-header" onclick="toggle('p3')">
+        <div class="phase-num">03</div>
+        <div class="phase-info">
+          <h3>KONFIGURASI PI DATA ARCHIVE</h3>
+          <p>Setup security, PI Points/Tags, dan verifikasi data store</p>
+        </div>
+        <span class="phase-badge badge-config">CONFIG</span>
+        <span class="phase-toggle">▼</span>
+      </div>
+      <div class="phase-body">
+        <div class="steps">
+          <div class="step">
+            <div class="step-num">01</div>
+            <div class="step-content">
+              <div class="step-title">Setup PI Identity & Security Mapping (PI SMT)</div>
+              <div class="code-block"><span class="comment">PI SMT → Security → Identities, Users & Groups</span>
+<span class="value">New Identity:</span> "PI_Readers"   <span class="comment">← untuk user read-only</span>
+<span class="value">New Identity:</span> "PI_Writers"   <span class="comment">← untuk interface/data input</span>
+
+<span class="comment">PI SMT → Security → Mappings & Trusts → Mappings</span>
+<span class="value">Windows User:</span>  PISERVER01\Administrator
+<span class="value">PI Identity:</span>   piadmins
+→ Save</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">02</div>
+            <div class="step-content">
+              <div class="step-title">Buat PI Points (Tags) untuk Testing</div>
+              <div class="code-block"><span class="comment">PI SMT → Data → Point Builder → New Point</span>
+
+<span class="comment">--- Contoh Tag 1 ---</span>
+<span class="value">Point Name:</span>    Plant.Temp.Reactor01
+<span class="value">Point Type:</span>    Float32
+<span class="value">Eng Units:</span>     DegC
+<span class="value">Span:</span>          0 – 200
+<span class="value">Compression:</span>  ON, DevPercent: 0.5
+
+<span class="comment">--- Buat juga tag berikut ---</span>
+<span class="value">Plant.Pressure.Vessel01</span>  Float32  barg   0-10
+<span class="value">Plant.Flow.Feed01</span>         Float32  m3/h   0-100
+<span class="value">Plant.Level.Tank01</span>        Float32  %      0-100
+<span class="value">Plant.Status.Pump01</span>       Int32    —      0-1</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">03</div>
+            <div class="step-content">
+              <div class="step-title">Test Input Data Manual</div>
+              <div class="code-block"><span class="comment">PI SMT → Data → Archive Editor</span>
+<span class="value">Tag:</span>       Plant.Temp.Reactor01
+<span class="value">Timestamp:</span> *   <span class="comment">(sekarang)</span>
+<span class="value">Value:</span>     85.5
+→ Enter → Verifikasi nilai masuk</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FASE 4: PI AF -->
+    <div class="phase-card" id="p4">
+      <div class="phase-accent-bar c4"></div>
+      <div class="phase-header" onclick="toggle('p4')">
+        <div class="phase-num">04</div>
+        <div class="phase-info">
+          <h3>SETUP PI ASSET FRAMEWORK (AF)</h3>
+          <p>Buat hierarki aset, database AF, template, dan attribute mapping</p>
+        </div>
+        <span class="phase-badge badge-config">CONFIG</span>
+        <span class="phase-toggle">▼</span>
+      </div>
+      <div class="phase-body">
+        <div class="steps">
+          <div class="step">
+            <div class="step-num">01</div>
+            <div class="step-content">
+              <div class="step-title">Buat AF Database Baru (PI System Explorer)</div>
+              <div class="code-block"><span class="comment"># Buka PI System Explorer</span>
+<span class="comment">Start Menu → PI System Explorer</span>
+<span class="comment">Connect to AF Server: PISERVER01</span>
+
+<span class="comment">File → New Database</span>
+<span class="value">Name:</span>        PlantDatabase
+<span class="value">Description:</span> Demo Plant Asset Model
+→ OK</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">02</div>
+            <div class="step-content">
+              <div class="step-title">Bangun Hierarki Aset (Element Tree)</div>
+              <div class="code-block"><span class="comment"># Struktur hierarki di panel kiri</span>
+<span class="value">PlantDatabase</span>
+  └─ <span class="value">Plant Site A</span>
+      ├─ <span class="value">Utility Area</span>
+      │   ├─ <span class="value">Reactor 01</span>
+      │   └─ <span class="value">Storage Tank 01</span>
+      └─ <span class="value">Feed Area</span>
+          └─ <span class="value">Feed Pump 01</span>
+
+<span class="comment"># Klik kanan pada node → New Element</span></div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">03</div>
+            <div class="step-content">
+              <div class="step-title">Buat Element Template</div>
+              <div class="code-block"><span class="comment">Library → Element Templates → New Template</span>
+<span class="value">Name:</span> ReactorTemplate
+
+<span class="comment"># Tambah Attributes (mapping ke PI Tags):</span>
+<span class="value">Attribute: Temperature</span>
+  Type: PI Point
+  PI Tag: Plant.Temp.Reactor01
+  Unit: DegC
+
+<span class="value">Attribute: Pressure</span>
+  Type: PI Point
+  PI Tag: Plant.Pressure.Vessel01
+  Unit: barg
+
+<span class="value">Attribute: OperatingStatus</span>
+  Type: PI Point
+  PI Tag: Plant.Status.Pump01</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">04</div>
+            <div class="step-content">
+              <div class="step-title">Apply Template & Check-In</div>
+              <div class="code-block"><span class="comment"># Klik "Reactor 01" → Properties</span>
+<span class="value">Template:</span> ReactorTemplate
+→ Apply Template
+→ Check-in (Ctrl+K)
+
+<span class="comment"># Verifikasi di tab Attributes:</span>
+<span class="comment"># Temperature harus tampil nilai dari PI tag ✅</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FASE 5: INSTALL PI VISION -->
+    <div class="phase-card" id="p5">
+      <div class="phase-accent-bar c1"></div>
+      <div class="phase-header" onclick="toggle('p5')">
+        <div class="phase-num">05</div>
+        <div class="phase-info">
+          <h3>INSTALL PI VISION</h3>
+          <p>Web-based visualization layer di atas IIS</p>
+        </div>
+        <span class="phase-badge badge-install">INSTALL</span>
+        <span class="phase-toggle">▼</span>
+      </div>
+      <div class="phase-body">
+        <div class="steps">
+          <div class="step">
+            <div class="step-num">01</div>
+            <div class="step-content">
+              <div class="step-title">Verifikasi IIS Berjalan</div>
+              <div class="code-block"><span class="cmd">Get-Service</span> <span class="value">W3SVC</span>
+<span class="comment"># Jika Stopped:</span>
+<span class="cmd">Start-Service</span> <span class="value">W3SVC</span>
+
+<span class="comment"># Test di browser: http://localhost</span>
+<span class="comment"># Harus tampil IIS default page ✅</span></div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">02</div>
+            <div class="step-content">
+              <div class="step-title">Jalankan PI Vision Installer</div>
+              <div class="code-block"><span class="comment"># Extract dan jalankan:</span>
+<span class="value">PI-Vision_2022_.exe → setup.exe (Run as Admin)</span>
+
+<span class="comment">--- Wizard Step 1: Prerequisites ---</span>
+<span class="comment"># Semua harus hijau ✅, jika ada merah: fix dulu!</span>
+
+<span class="comment">--- Wizard Step 2: IIS Configuration ---</span>
+<span class="value">Website:</span>         Default Web Site
+<span class="value">Virtual Dir:</span>     PIVision
+<span class="value">App Pool:</span>        PIVisionServiceAppPool
+
+<span class="comment">--- Wizard Step 3: AF Server ---</span>
+<span class="value">AF Server:</span>       PISERVER01
+<span class="value">Database:</span>        PlantDatabase
+→ Test Connection → <span class="value">Connected ✅</span>
+
+<span class="comment">--- Wizard Step 4: Service Account ---</span>
+<span class="value">Account:</span>  Network Service  <span class="comment">(untuk lab/dev)</span></div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">03</div>
+            <div class="step-content">
+              <div class="step-title">Konfigurasi Post-Install — IIS</div>
+              <div class="code-block"><span class="comment">IIS Manager → Application Pools → PIVisionServiceAppPool</span>
+<span class="value">→ Advanced Settings</span>
+  Identity:             Network Service
+  Load User Profile:    True
+
+<span class="comment">IIS Manager → Sites → Default Web Site → PIVision</span>
+<span class="value">→ Authentication</span>
+  Windows Authentication:  ENABLED  ✅
+  Anonymous Authentication: DISABLED ❌</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">04</div>
+            <div class="step-content">
+              <div class="step-title">Setup PI Security untuk PI Vision</div>
+              <div class="code-block"><span class="comment">--- PI SMT: Trust untuk PI Vision ---</span>
+<span class="comment">Security → Mappings & Trusts → Trusts → New Trust</span>
+<span class="value">Name:</span>     PIVisionTrust
+<span class="value">NetMask:</span>  127.0.0.1    <span class="comment">(localhost)</span>
+<span class="value">PI Identity:</span> PI_Readers
+→ Save
+
+<span class="comment">--- PI System Explorer: AF Security ---</span>
+<span class="comment">File → Server Properties → Security</span>
+<span class="value">Add:</span>    PISERVER01\NetworkService
+<span class="value">Role:</span>   PI AF Reader</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FASE 6: PI VISION DISPLAY -->
+    <div class="phase-card" id="p6">
+      <div class="phase-accent-bar c5"></div>
+      <div class="phase-header" onclick="toggle('p6')">
+        <div class="phase-num">06</div>
+        <div class="phase-info">
+          <h3>BUAT DISPLAY PI VISION</h3>
+          <p>Trend, value, gauge, multi-state — setup tampilan real-time</p>
+        </div>
+        <span class="phase-badge badge-config">CONFIG</span>
+        <span class="phase-toggle">▼</span>
+      </div>
+      <div class="phase-body">
+        <div class="steps">
+          <div class="step">
+            <div class="step-num">01</div>
+            <div class="step-content">
+              <div class="step-title">Akses PI Vision di Browser</div>
+              <div class="code-block"><span class="comment"># URL akses PI Vision:</span>
+<span class="value">http://PISERVER01/PIVision/#/</span>
+<span class="comment"># atau</span>
+<span class="value">https://PISERVER01/PIVision/</span>   <span class="comment">(jika SSL dikonfigurasi)</span>
+
+<span class="comment"># Login: Windows Authentication (otomatis pakai credential Windows)</span></div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">02</div>
+            <div class="step-content">
+              <div class="step-title">Buat New Display</div>
+              <div class="code-block"><span class="comment">Klik: New Display → Template: Blank</span>
+<span class="value">Name:</span> "Reactor 01 Overview"
+→ Open (masuk ke design mode)</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">03</div>
+            <div class="step-content">
+              <div class="step-title">Tambah Symbol ke Display</div>
+              <div class="code-block"><span class="comment">--- Trend (Grafik Historis) ---</span>
+<span class="comment">Symbol Catalog → Trend → Drag ke canvas</span>
+<span class="value">Search tag:</span> Plant.Temp.Reactor01 → Add
+
+<span class="comment">--- Value Display (Angka Real-time) ---</span>
+<span class="comment">Symbol Catalog → Value → Drag ke canvas</span>
+<span class="value">Tag:</span> Plant.Pressure.Vessel01
+<span class="value">Format:</span> Numeric, 2 decimal places
+
+<span class="comment">--- Gauge ---</span>
+<span class="comment">Symbol Catalog → Gauge → Drag ke canvas</span>
+<span class="value">Tag:</span> Plant.Level.Tank01
+<span class="value">Min:</span> 0, <span class="value">Max:</span> 100
+<span class="value">Warning High:</span> 80  <span class="comment">(kuning)</span>
+<span class="value">Alarm High:</span>   90  <span class="comment">(merah)</span>
+
+<span class="comment">--- Multi-state (Status Indicator) ---</span>
+<span class="comment">Symbol Catalog → Multi-state → Drag ke canvas</span>
+<span class="value">Tag:</span>   Plant.Status.Pump01
+<span class="value">State 0:</span> "STOP" → warna: merah
+<span class="value">State 1:</span> "RUNNING" → warna: hijau</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">04</div>
+            <div class="step-content">
+              <div class="step-title">Save Display</div>
+              <div class="code-block"><span class="comment">File → Save Display</span>
+<span class="value">Name:</span>   Reactor01_Overview
+<span class="value">Folder:</span> /PlantDisplays/
+→ Save → Klik "Design" → toggle ke "View Mode"</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FASE 7: KONEKSI DATA SOURCE -->
+    <div class="phase-card" id="p7">
+      <div class="phase-accent-bar c6"></div>
+      <div class="phase-header" onclick="toggle('p7')">
+        <div class="phase-num">07</div>
+        <div class="phase-info">
+          <h3>KONEKSI DATA SOURCE</h3>
+          <p>OPC DA, Modbus, atau PI Random untuk simulasi data</p>
+        </div>
+        <span class="phase-badge badge-install">INTERFACE</span>
+        <span class="phase-toggle">▼</span>
+      </div>
+      <div class="phase-body">
+        <div class="steps">
+          <div class="step">
+            <div class="step-num">A</div>
+            <div class="step-content">
+              <div class="step-title">Option A: PI Interface untuk OPC DA</div>
+              <div class="code-block"><span class="comment"># Install PI Interface for OPC DA</span>
+<span class="comment">PI ICU → Add Interface → OPC DA</span>
+<span class="value">Host:</span>        PISERVER01
+<span class="value">Interface ID:</span> 1
+<span class="value">OPC Server:</span>  localhost\OPCSimulator
+<span class="value">Scan Class:</span>  10 detik
+→ Build PI Tags dari OPC Items
+→ Start Interface</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">B</div>
+            <div class="step-content">
+              <div class="step-title">Option B: PI Interface untuk Modbus TCP</div>
+              <div class="code-block"><span class="comment">PI ICU → Add Interface → Modbus TCP</span>
+<span class="value">Device IP:</span>   192.168.1.200   <span class="comment">(IP PLC/RTU)</span>
+<span class="value">Port:</span>        502
+<span class="value">Scan:</span>        5 detik
+<span class="comment"># Mapping register ke PI Tag:</span>
+<span class="value">HR 40001 →</span> Plant.Temp.Reactor01</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">C</div>
+            <div class="step-content">
+              <div class="step-title">Option C: PI Random Interface (Simulasi — untuk Lab)</div>
+              <div class="code-block"><span class="comment"># Tidak perlu hardware! Langsung simulasi nilai random</span>
+<span class="comment">PI ICU → Add Interface → PI Random</span>
+→ <span class="value">Assign ke semua PI Tags yang sudah dibuat</span>
+→ <span class="value">Scan Class: 5 detik</span>
+→ <span class="value">Start Interface</span>
+<span class="comment"># Nilai akan berubah random sesuai span tag</span>
+<span class="comment"># Langsung bisa dilihat di PI Vision ✅</span></div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">D</div>
+            <div class="step-content">
+              <div class="step-title">Option D: PI Performance Monitor (CPU/RAM → PI Tag)</div>
+              <div class="code-block"><span class="comment"># Push Windows performance counters sebagai PI tag</span>
+<span class="comment">PI ICU → Add Interface → PI Performance Monitor</span>
+→ Auto-discover Windows counters
+<span class="comment"># Contoh mapping:</span>
+<span class="value">\Processor(_Total)\% Processor Time → Server.CPU.Usage</span>
+<span class="value">\Memory\Available MBytes → Server.RAM.Available</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FASE 8: VERIFIKASI FINAL -->
+    <div class="phase-card" id="p8">
+      <div class="phase-accent-bar c7"></div>
+      <div class="phase-header" onclick="toggle('p8')">
+        <div class="phase-num">08</div>
+        <div class="phase-info">
+          <h3>VERIFIKASI END-TO-END</h3>
+          <p>Final checklist dan troubleshooting guide</p>
+        </div>
+        <span class="phase-badge badge-verify">VERIFY</span>
+        <span class="phase-toggle">▼</span>
+      </div>
+      <div class="phase-body">
+        <div class="step" style="margin-top:14px">
+          <div class="step-num">✓</div>
+          <div class="step-content">
+            <div class="step-title">Final Checklist — Klik untuk tandai selesai</div>
+            <div class="checklist" id="checklist">
+              <div class="check-item" onclick="toggleCheck(this)"><span class="chk">○</span>License file valid & loaded</div>
+              <div class="check-item" onclick="toggleCheck(this)"><span class="chk">○</span>PI Archive services Running</div>
+              <div class="check-item" onclick="toggleCheck(this)"><span class="chk">○</span>PI SMT connect ke server OK</div>
+              <div class="check-item" onclick="toggleCheck(this)"><span class="chk">○</span>PI Tags dibuat & bisa dibaca</div>
+              <div class="check-item" onclick="toggleCheck(this)"><span class="chk">○</span>PI AF Database & Element OK</div>
+              <div class="check-item" onclick="toggleCheck(this)"><span class="chk">○</span>AF Attribute mapping ke tags</div>
+              <div class="check-item" onclick="toggleCheck(this)"><span class="chk">○</span>IIS PI Vision site accessible</div>
+              <div class="check-item" onclick="toggleCheck(this)"><span class="chk">○</span>PI Vision login Windows Auth</div>
+              <div class="check-item" onclick="toggleCheck(this)"><span class="chk">○</span>Display Trend tampil data</div>
+              <div class="check-item" onclick="toggleCheck(this)"><span class="chk">○</span>Interface/data source running</div>
+              <div class="check-item" onclick="toggleCheck(this)"><span class="chk">○</span>Data update real-time di Vision</div>
+              <div class="check-item" onclick="toggleCheck(this)"><span class="chk">○</span>Firewall port 5450 & 80/443 OK</div>
+            </div>
+          </div>
+        </div>
+        <div class="step" style="margin-top:14px">
+          <div class="step-num">🔧</div>
+          <div class="step-content">
+            <div class="step-title">Troubleshooting Cepat</div>
+            <table class="req-table">
+              <tr><th>Problem</th><th>Kemungkinan Penyebab</th><th>Fix</th></tr>
+              <tr><td>PI Vision "No Data"</td><td>Trust belum dibuat</td><td class="val-warn">Buat Trust di PI SMT</td></tr>
+              <tr><td>PI Vision 403 Error</td><td>Windows Auth off</td><td class="val-warn">Enable di IIS Manager</td></tr>
+              <tr><td>AF Attribute kosong</td><td>PI tag name typo</td><td class="val-warn">Re-check Point Builder</td></tr>
+              <tr><td>Trend tidak update</td><td>Interface tidak running</td><td class="val-warn">Cek PI ICU status</td></tr>
+              <tr><td>PI SMT tidak konek</td><td>Port 5450 blocked</td><td class="val-warn">Allow di Firewall</td></tr>
+              <tr><td>License Error saat install</td><td>Hostname tidak cocok</td><td class="val-warn">Verifikasi hostname = license</td></tr>
+              <tr><td>App Pool crash</td><td>.NET version mismatch</td><td class="val-warn">Set ke .NET 4.0 Integrated</td></tr>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /phases -->
+
+  <!-- README -->
+  <div class="readme-box" id="readmeSection">
+    <div class="readme-header">
+      <div class="rh-icon">📄</div>
+      <div>
+        <h2>README.md</h2>
+        <p>PI Server Full Installation Guide · AVEVA OSIsoft · v1.0</p>
+      </div>
+    </div>
+    <div class="readme-content" id="readmeContent">
+<span class="md-h1"># PI Server Full Installation Guide</span>
+<span class="md-dim">## AVEVA OSIsoft · PI Data Archive + PI AF + PI Vision
+### Version: 1.0 | Platform: Windows Server 2022 | Date: 2025</span>
+
+<span class="md-dim">---</span>
+
+<span class="md-h2">## ⚠️ PENTING: LISENSI</span>
+
+PI System adalah <span class="md-bold">enterprise licensed software dari AVEVA (dulu OSIsoft)</span>.
+Kamu <span class="md-warn">TIDAK BISA</span> install tanpa file lisensi resmi.
+
+Yang dibutuhkan dari AVEVA:
+- <span class="md-code">PI-Server_2018-SP3-Patch-X_.exe</span> — installer kit
+- <span class="md-code">piserver.lic</span>                    — license file (terikat ke hostname!)
+- <span class="md-code">PI-Vision_2022_.exe</span>             — PI Vision installer
+- Akun di AVEVA Customer Portal: <span class="md-code">customers.osisoft.com</span>
+
+<span class="md-warn">PERINGATAN: License file terikat ke hostname server.
+Tentukan hostname FINAL sebelum request license ke AVEVA.</span>
+
+<span class="md-dim">---</span>
+
+<span class="md-h2">## 📋 Persyaratan Sistem</span>
+
+| Komponen     | Minimum      | Recommended  |
+|-------------|-------------|-------------|
+| RAM         | 8 GB        | 16 GB       |
+| CPU         | 2 Core      | 4 Core      |
+| Disk C:     | 40 GB       | 80 GB       |
+| Disk D:     | 20 GB       | 50 GB+      |
+| OS          | WS 2016     | WS 2022     |
+| .NET        | 4.8         | 4.8         |
+
+<span class="md-dim">---</span>
+
+<span class="md-h2">## 🗺️ Arsitektur</span>
+
+<span class="md-code">Data Source → PI Interface → PI Data Archive → PI AF → PI Vision → Browser</span>
+
+<span class="md-dim">---</span>
+
+<span class="md-h2">## 🔧 Urutan Instalasi</span>
+
+<span class="md-h3">### FASE 00 — Procurement License</span>
+1. Hubungi AVEVA / SI Partner resmi
+2. Tentukan hostname FINAL server
+3. Dapatkan installer kit + license file
+4. Download dari AVEVA Customer Portal
+
+<span class="md-h3">### FASE 01 — Pre-Install Windows</span>
+1. Set hostname (sama dengan yang di license)
+2. Set static IP address
+3. Install IIS + Windows features via PowerShell
+4. Setup Windows Firewall (port 5450, 80, 443)
+
+<span class="md-code">Install-WindowsFeature -Name Web-Server, Web-Asp-Net45, Web-Windows-Auth, \\
+  Web-Net-Ext45, Web-ISAPI-Ext, Web-ISAPI-Filter, Web-Static-Content, \\
+  Web-Default-Doc, Web-Http-Errors, Web-Http-Logging, \\
+  Web-Request-Monitor, Web-Filtering, Web-Mgmt-Console -IncludeManagementTools</span>
+
+<span class="md-h3">### FASE 02 — Install PI Data Archive</span>
+1. Ekstrak <span class="md-code">PI-Server_2018-SP3-Patch-3_.exe</span>
+2. Jalankan <span class="md-code">setup.exe</span> sebagai Administrator
+3. Centang: PI Data Archive + PI AF Server + PI SMT
+4. Data store di Disk D: <span class="md-code">D:\PIData\</span>
+5. Load license file saat diminta
+6. Verifikasi semua services Running
+
+<span class="md-code">Get-Service -Name "piarchss","pibasess","pimsgss","pisqlss"
+# Semua harus Status = Running</span>
+
+<span class="md-h3">### FASE 03 — Konfigurasi PI Data Archive</span>
+1. Buka PI System Management Tools (PI SMT)
+2. Buat PI Identities: PI_Readers, PI_Writers
+3. Setup Security Mappings
+4. Buat PI Points (Tags) lewat Point Builder
+5. Test input data manual via Archive Editor
+
+<span class="md-h3">### FASE 04 — Setup PI AF (Asset Framework)</span>
+1. Buka PI System Explorer
+2. Buat AF Database baru
+3. Bangun hierarki element (Plant > Area > Equipment)
+4. Buat Element Template dengan Attribute mapping ke PI Tags
+5. Apply template, Check-in (Ctrl+K)
+
+<span class="md-h3">### FASE 05 — Install PI Vision</span>
+1. Verifikasi IIS berjalan
+2. Jalankan <span class="md-code">PI-Vision_2022_.exe</span> installer
+3. Konfigurasi virtual directory <span class="md-code">PIVision</span> di IIS
+4. Connect ke AF Server saat wizard
+5. Post-install: enable Windows Auth, disable Anonymous Auth di IIS
+6. Setup Trust di PI SMT untuk PI Vision service account
+
+<span class="md-h3">### FASE 06 — Buat Display PI Vision</span>
+1. Akses: <span class="md-code">http://PISERVER01/PIVision/#/</span>
+2. New Display → Blank
+3. Tambah symbols: Trend, Value, Gauge, Multi-state
+4. Map ke PI Tags
+5. Save display ke folder
+
+<span class="md-h3">### FASE 07 — Koneksi Data Source</span>
+- <span class="md-bold">OPC DA:</span> PI ICU → Add OPC DA Interface
+- <span class="md-bold">Modbus TCP:</span> PI ICU → Add Modbus Interface
+- <span class="md-bold">Simulasi (lab):</span> PI ICU → PI Random Interface (tanpa hardware)
+- <span class="md-bold">Windows Perf Counter:</span> PI Performance Monitor Interface
+
+<span class="md-h3">### FASE 08 — Verifikasi End-to-End</span>
+- PI Archive services running ✅
+- PI Tags bisa dibaca di PI SMT ✅
+- AF Attributes tampil nilai ✅
+- PI Vision accessible & data tampil ✅
+- Interface/data source update real-time ✅
+
+<span class="md-dim">---</span>
+
+<span class="md-h2">## 🔴 Troubleshooting</span>
+
+| Problem                | Penyebab                | Solusi                          |
+|-----------------------|------------------------|--------------------------------|
+| PI Vision "No Data"   | Trust belum dibuat      | Buat Trust di PI SMT           |
+| PI Vision 403         | Windows Auth off        | Enable di IIS Manager          |
+| AF Attribute kosong   | PI tag name typo        | Cek ulang Point Builder        |
+| Trend tidak update    | Interface tidak running | Cek PI ICU → Interface status  |
+| PI SMT tidak konek    | Port 5450 blocked       | Allow port di Windows Firewall |
+| License Error         | Hostname tidak cocok    | Verifikasi hostname = license  |
+
+<span class="md-dim">---</span>
+
+<span class="md-h2">## 📚 Referensi</span>
+
+- AVEVA Customer Portal: <span class="md-code">customers.osisoft.com</span>
+- PI System Documentation: <span class="md-code">docs.aveva.com</span>
+- PI Developers Club: <span class="md-code">pisquare.osisoft.com</span>
+- PI Web API: <span class="md-code">https://[server]/piwebapi/</span>
+
+<span class="md-dim">---</span>
+<span class="md-dim">Generated for lab/field readiness training · AVEVA PI System</span>
+    </div>
+    <div class="readme-download">
+      <button class="dl-btn secondary" onclick="copyReadme()">📋 Copy README</button>
+      <button class="dl-btn primary" onclick="downloadReadme()">⬇ Download README.md</button>
+    </div>
+  </div>
+
+  <div class="footer">
+    <span>PI SERVER</span> INSTALLATION GUIDE · AVEVA OSISOFT · FIELD READINESS TRAINING
+  </div>
+
+</div><!-- /wrapper -->
+
+<script>
+  function toggle(id) {
+    const card = document.getElementById(id);
+    card.classList.toggle('open');
+  }
+
+  function toggleCheck(el) {
+    el.classList.toggle('done');
+    const chk = el.querySelector('.chk');
+    if (el.classList.contains('done')) {
+      chk.textContent = '●';
+    } else {
+      chk.textContent = '○';
+    }
+  }
+
+  function copyReadme() {
+    const txt = document.getElementById('readmeContent').innerText;
+    navigator.clipboard.writeText(txt).then(() => {
+      const btn = event.target;
+      btn.textContent = '✅ Copied!';
+      setTimeout(() => btn.textContent = '📋 Copy README', 2000);
+    });
+  }
+
+  function downloadReadme() {
+    const content = `# PI Server Full Installation Guide
+## AVEVA OSIsoft · PI Data Archive + PI AF + PI Vision
+### Version: 1.0 | Platform: Windows Server 2022
+
+---
+
+## ⚠️ PENTING: LISENSI
+
+PI System adalah **enterprise licensed software dari AVEVA (dulu OSIsoft)**.
+Kamu **TIDAK BISA** install tanpa file lisensi resmi.
+
+Yang dibutuhkan dari AVEVA:
+- \`PI-Server_2018-SP3-Patch-X_.exe\` — installer kit
+- \`piserver.lic\` — license file (terikat ke hostname!)
+- \`PI-Vision_2022_.exe\` — PI Vision installer
+- Akun di AVEVA Customer Portal: \`customers.osisoft.com\`
+
+> **PERINGATAN:** License file terikat ke hostname server.
+> Tentukan hostname FINAL sebelum request license ke AVEVA.
+
+---
+
+## 📋 Persyaratan Sistem
+
+| Komponen | Minimum | Recommended |
+|----------|---------|-------------|
+| RAM | 8 GB | 16 GB |
+| CPU | 2 Core | 4 Core |
+| Disk C: | 40 GB | 80 GB |
+| Disk D: | 20 GB | 50 GB+ |
+| OS | WS 2016 | WS 2022 |
+| .NET | 4.8 | 4.8 |
+
+---
+
+## 🗺️ Arsitektur
+
+\`\`\`
+Data Source → PI Interface → PI Data Archive → PI AF → PI Vision → Browser
+\`\`\`
+
+---
+
+## 🔧 Urutan Instalasi
+
+### FASE 00 — Procurement License
+1. Hubungi AVEVA / SI Partner resmi
+2. Tentukan hostname FINAL server
+3. Dapatkan installer kit + license file
+4. Download dari AVEVA Customer Portal
+
+### FASE 01 — Pre-Install Windows
+1. Set hostname (sama dengan yang di license)
+2. Set static IP address
+3. Install IIS + Windows features via PowerShell
+4. Setup Windows Firewall (port 5450, 80, 443)
+
+\`\`\`powershell
+Install-WindowsFeature -Name Web-Server, Web-Asp-Net45, Web-Windows-Auth, \`
+  Web-Net-Ext45, Web-ISAPI-Ext, Web-ISAPI-Filter, Web-Static-Content, \`
+  Web-Default-Doc, Web-Http-Errors, Web-Http-Logging, \`
+  Web-Request-Monitor, Web-Filtering, Web-Mgmt-Console -IncludeManagementTools
+\`\`\`
+
+### FASE 02 — Install PI Data Archive
+1. Ekstrak \`PI-Server_2018-SP3-Patch-3_.exe\`
+2. Jalankan \`setup.exe\` sebagai Administrator
+3. Centang: PI Data Archive + PI AF Server + PI SMT
+4. Data store di Disk D: \`D:\\PIData\\\`
+5. Load license file saat diminta
+6. Verifikasi semua services Running
+
+\`\`\`powershell
+Get-Service -Name "piarchss","pibasess","pimsgss","pisqlss"
+# Semua harus Status = Running
+\`\`\`
+
+### FASE 03 — Konfigurasi PI Data Archive
+1. Buka PI System Management Tools (PI SMT)
+2. Buat PI Identities: PI_Readers, PI_Writers
+3. Setup Security Mappings
+4. Buat PI Points (Tags) lewat Point Builder
+5. Test input data manual via Archive Editor
+
+### FASE 04 — Setup PI AF (Asset Framework)
+1. Buka PI System Explorer
+2. Buat AF Database baru
+3. Bangun hierarki element (Plant > Area > Equipment)
+4. Buat Element Template dengan Attribute mapping ke PI Tags
+5. Apply template, Check-in (Ctrl+K)
+
+### FASE 05 — Install PI Vision
+1. Verifikasi IIS berjalan
+2. Jalankan \`PI-Vision_2022_.exe\` installer
+3. Konfigurasi virtual directory \`PIVision\` di IIS
+4. Connect ke AF Server saat wizard
+5. Post-install: enable Windows Auth, disable Anonymous Auth di IIS
+6. Setup Trust di PI SMT untuk PI Vision service account
+
+### FASE 06 — Buat Display PI Vision
+1. Akses: \`http://PISERVER01/PIVision/#/\`
+2. New Display → Blank
+3. Tambah symbols: Trend, Value, Gauge, Multi-state
+4. Map ke PI Tags
+5. Save display ke folder
+
+### FASE 07 — Koneksi Data Source
+- **OPC DA:** PI ICU → Add OPC DA Interface
+- **Modbus TCP:** PI ICU → Add Modbus Interface
+- **Simulasi (lab):** PI ICU → PI Random Interface (tanpa hardware)
+- **Windows Perf Counter:** PI Performance Monitor Interface
+
+### FASE 08 — Verifikasi End-to-End
+- [ ] PI Archive services running
+- [ ] PI Tags bisa dibaca di PI SMT
+- [ ] AF Attributes tampil nilai
+- [ ] PI Vision accessible & data tampil
+- [ ] Interface/data source update real-time
+
+---
+
+## 🔴 Troubleshooting
+
+| Problem | Penyebab | Solusi |
+|---------|----------|--------|
+| PI Vision "No Data" | Trust belum dibuat | Buat Trust di PI SMT |
+| PI Vision 403 | Windows Auth off | Enable di IIS Manager |
+| AF Attribute kosong | PI tag name typo | Cek ulang Point Builder |
+| Trend tidak update | Interface tidak running | Cek PI ICU status |
+| PI SMT tidak konek | Port 5450 blocked | Allow port di Firewall |
+| License Error | Hostname tidak cocok | Verifikasi hostname = license |
+
+---
+
+## 📚 Referensi
+
+- AVEVA Customer Portal: https://customers.osisoft.com
+- PI System Documentation: https://docs.aveva.com
+- PI Developers Club: https://pisquare.osisoft.com
+- PI Web API: https://[server]/piwebapi/
+
+---
+*Generated for lab/field readiness training · AVEVA PI System*`;
+
+    const blob = new Blob([content], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'PI-Server-Installation-Guide-README.md';
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  // Auto-open first phase on load
+  window.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('p0').classList.add('open');
+  });
+</script>
+</body>
+</html>
+
